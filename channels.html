@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OUROBOR — Telegram-каналы для рекламы</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #111;
+            --surface-2: #1a1a1a;
+            --border: #222;
+            --text: #e8e8e8;
+            --muted: #777;
+            --accent: #8940FA;
+            --accent-l: #a96bff;
+            --accent-dim: rgba(137,64,250,0.1);
+            --green: #34d399;
+            --yellow: #fbbf24;
+            --blue: #60a5fa;
+            --pink: #f472b6;
+            --orange: #fb923c;
+            --red: #f87171;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        a { color: var(--accent-l); text-decoration: none; transition: opacity .2s; }
+        a:hover { opacity: .75; }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(180deg, rgba(137,64,250,0.06) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border);
+        }
+        .hero h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+        .hero h1 span { color: var(--accent); }
+        .hero .sub { color: var(--muted); margin-top: 8px; font-size: 15px; }
+        .hero .stats {
+            display: flex; justify-content: center; gap: 32px;
+            margin-top: 20px; flex-wrap: wrap;
+        }
+        .hero .stat { text-align: center; }
+        .hero .stat-num { font-size: 28px; font-weight: 700; color: var(--accent); }
+        .hero .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+        .nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(10,10,10,0.9); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
+        }
+        .nav-inner {
+            max-width: 1100px; margin: 0 auto; padding: 0 20px;
+            display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+        }
+        .nav a {
+            padding: 6px 14px; border-radius: 6px; font-size: 12px;
+            background: var(--surface-2); color: var(--muted);
+            border: 1px solid var(--border); transition: all .2s;
+        }
+        .nav a:hover { color: var(--text); border-color: var(--accent); opacity: 1; }
+
+        .category {
+            margin: 48px 0;
+            scroll-margin-top: 60px;
+        }
+        .cat-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .cat-icon {
+            width: 36px; height: 36px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .cat-header h2 { font-size: 20px; font-weight: 600; }
+        .cat-header .count {
+            margin-left: auto; font-size: 12px; color: var(--muted);
+            background: var(--surface-2); padding: 4px 10px; border-radius: 4px;
+        }
+
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 12px;
+        }
+        .ch {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            transition: border-color .2s;
+            display: flex; flex-direction: column;
+        }
+        .ch:hover { border-color: var(--accent); }
+        .ch-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .ch-handle {
+            font-weight: 600; font-size: 14px; color: var(--accent-l);
+        }
+        .ch-subs {
+            margin-left: auto; font-size: 11px; color: var(--muted);
+            background: var(--surface-2); padding: 2px 8px; border-radius: 4px;
+            white-space: nowrap;
+        }
+        .ch-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; color: var(--text); }
+        .ch-author { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+        .ch-desc { font-size: 13px; color: var(--muted); line-height: 1.5; flex-grow: 1; }
+        .ch-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 10px; }
+        .tag {
+            font-size: 10px; padding: 2px 8px; border-radius: 3px;
+            text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+        }
+        .tag-fashion { background: rgba(137,64,250,0.15); color: var(--accent-l); }
+        .tag-street { background: rgba(251,146,60,0.15); color: var(--orange); }
+        .tag-men { background: rgba(96,165,250,0.15); color: var(--blue); }
+        .tag-women { background: rgba(244,114,182,0.15); color: var(--pink); }
+        .tag-spb { background: rgba(52,211,153,0.15); color: var(--green); }
+        .tag-eco { background: rgba(52,211,153,0.15); color: var(--green); }
+        .tag-media { background: rgba(251,191,36,0.15); color: var(--yellow); }
+        .tag-shop { background: rgba(248,113,113,0.15); color: var(--red); }
+        .tag-design { background: rgba(96,165,250,0.15); color: var(--blue); }
+        .tag-lifestyle { background: rgba(244,114,182,0.15); color: var(--pink); }
+        .tag-collab { background: rgba(251,191,36,0.15); color: var(--yellow); }
+
+        .priority-box {
+            background: var(--accent-dim);
+            border: 1px solid rgba(137,64,250,0.2);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .priority-box strong { color: var(--accent-l); }
+
+        .tools {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            margin: 48px 0;
+        }
+        .tools h3 { font-size: 16px; margin-bottom: 16px; }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+        }
+        .tool-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .tool-card h4 { font-size: 14px; color: var(--accent-l); margin-bottom: 6px; }
+        .tool-card p { font-size: 13px; color: var(--muted); }
+
+        footer {
+            text-align: center; padding: 32px 20px;
+            color: var(--muted); font-size: 11px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 24px; }
+            .channels-grid { grid-template-columns: 1fr; }
+            .nav a { font-size: 11px; padding: 4px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>Telegram-каналы для рекламы <span>OUROBOR</span></h1>
+    <div class="sub">Полная база каналов и групп для посевов, коллабораций и продвижения</div>
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-num">70+</div>
+            <div class="stat-label">Каналов</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num">8</div>
+            <div class="stat-label">Категорий</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num">3</div>
+            <div class="stat-label">Приоритета</div>
+        </div>
+    </div>
+</div>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#fashion-editors">Fashion-редакторы</a>
+        <a href="#streetwear">Streetwear</a>
+        <a href="#mens">Мужской стиль</a>
+        <a href="#mass-fashion">Масс-мода</a>
+        <a href="#conscious">Осознанное потребление</a>
+        <a href="#spb">Санкт-Петербург</a>
+        <a href="#design">Дизайн и эстетика</a>
+        <a href="#collabs">Коллаборации</a>
+        <a href="#tools">Инструменты поиска</a>
+    </div>
+</nav>
+
+<div class="container">
+
+<!-- ========== 1. Fashion-редакторы и блогеры ========== -->
+<div class="category" id="fashion-editors">
+    <div class="cat-header">
+        <div class="cat-icon" style="background:rgba(137,64,250,0.15);">&#9733;</div>
+        <h2>Fashion-редакторы и блогеры</h2>
+        <span class="count">30 каналов</span>
+    </div>
+    <div class="priority-box">
+        <strong>Приоритет 1</strong> — авторитетные авторы с лояльной аудиторией. Нативная интеграция или обзор бренда здесь даёт максимальный social proof.
+    </div>
+    <div class="channels-grid">
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/fashion_mur" target="_blank">@fashion_mur</a></div>
+            <div class="ch-name">MUR</div>
+            <div class="ch-author">Мадонна Мур, ex-главред Peopletalk</div>
+            <div class="ch-desc">Один из крупнейших каналов о моде в рунете. Новости, тренды, шопинг-подборки, рубрика «Лук дня».</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/mukhinss" target="_blank">@mukhinss</a></div>
+            <div class="ch-name">Mukhins</div>
+            <div class="ch-author">Катя Мухина, ex-главред Vogue, стилист</div>
+            <div class="ch-desc">Глянцевая фотография, показы и тренды от инсайдера индустрии.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/rogov24" target="_blank">@rogov24</a></div>
+            <div class="ch-name">ROGOV</div>
+            <div class="ch-author">Александр Рогов, телеведущий, стилист</div>
+            <div class="ch-desc">Личный канал о моде и стайлинге. Огромная аудитория, авторитет в fashion-сообществе.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/goodmorningkarl" target="_blank">@goodmorningkarl</a></div>
+            <div class="ch-name">Good morning, Karl!</div>
+            <div class="ch-author">Катя Федорова</div>
+            <div class="ch-desc">Новости моды, аналитика и юмор. Один из самых цитируемых fashion-каналов.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/ksenia_solovieva" target="_blank">@ksenia_solovieva</a></div>
+            <div class="ch-name">Ксения Соловьева</div>
+            <div class="ch-author">Ex-главред Tatler и Vogue</div>
+            <div class="ch-desc">Индустриальные новости и профессиональные комментарии из мира моды.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/styletricks" target="_blank">@styletricks</a></div>
+            <div class="ch-name">Style Tricks</div>
+            <div class="ch-author">Катя Табакова, директор моды Harper's Bazaar</div>
+            <div class="ch-desc">Практичные советы по стайлингу с реальными примерами и подборками.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-women">женский</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/lifestylewhat" target="_blank">@lifestylewhat</a></div>
+            <div class="ch-name">Отдел стиль жизни</div>
+            <div class="ch-author">Алина Григалашвили, редактор The Blueprint, Vogue.ru</div>
+            <div class="ch-desc">Адаптированная фэшн-аналитика и вдохновение. Архивные материалы из журналов.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-lifestyle">лайфстайл</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/copyme" target="_blank">@copyme</a></div>
+            <div class="ch-name">Copy Me</div>
+            <div class="ch-author">Алена Галкина, журналист</div>
+            <div class="ch-desc">Вдумчивый канал — фокус на тихую роскошь (quiet luxury), локальные бренды, модные детали.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-collab">коллаб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/frontfashion" target="_blank">@frontfashion</a></div>
+            <div class="ch-name">Front Fashion</div>
+            <div class="ch-author">Ольга Михайловская, модный критик</div>
+            <div class="ch-desc">Аналитические обзоры коллекций и дизайнеров. Профессиональный взгляд на индустрию.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/bezfiltrov_show" target="_blank">@bezfiltrov_show</a></div>
+            <div class="ch-name">Безфильтров</div>
+            <div class="ch-author">Анастасия Полетаева</div>
+            <div class="ch-desc">Модные новости, бренды и луки без фильтров. Подборки актуальных образов.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/MinogarovaNews" target="_blank">@MinogarovaNews</a></div>
+            <div class="ch-name">Маша Миногарова</div>
+            <div class="ch-author">Маша Миногарова</div>
+            <div class="ch-desc">Модные новости, мемы и образы от медийной персоны.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/goldchihuahua" target="_blank">@goldchihuahua</a></div>
+            <div class="ch-name">Golden Chihuahua</div>
+            <div class="ch-author">Саша Амато</div>
+            <div class="ch-desc">Молодые марки, кампании, мемы о моде. Поддержка локальных брендов.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-collab">коллаб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/superficialspacecadet" target="_blank">@superficialspacecadet</a></div>
+            <div class="ch-name">superficial space cadet</div>
+            <div class="ch-author">Яна Лукина, контрибьютор The Blueprint</div>
+            <div class="ch-desc">Анализ нарядов звёзд и красных дорожек.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/askvydolob" target="_blank">@askvydolob</a></div>
+            <div class="ch-name">да и нет</div>
+            <div class="ch-author">Юлия Выдолоб, журналист, партнер Dot Comms</div>
+            <div class="ch-desc">Одежда, модный бизнес и коммуникация. Взгляд со стороны PR.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/megastil" target="_blank">@megastil</a></div>
+            <div class="ch-name">Мегастиль</div>
+            <div class="ch-author">Ира Дубина, стилист, модный редактор</div>
+            <div class="ch-desc">Энциклопедические знания о винтаже. Комментарии на коллекции и модные события.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/drunkfashion" target="_blank">@drunkfashion</a></div>
+            <div class="ch-name">Drunk Fashion</div>
+            <div class="ch-author">Алена Литковец</div>
+            <div class="ch-desc">Жизненный фэшн, мемы и поп-культура от инсайдера индустрии.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-lifestyle">лайфстайл</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/editorsonvacation" target="_blank">@editorsonvacation</a></div>
+            <div class="ch-name">editors on vacation</div>
+            <div class="ch-author">А. Свиридовская, К. Манучарян</div>
+            <div class="ch-desc">Модные выходы и молодые марки. Поддержка локальных дизайнеров.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-collab">коллаб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/straightface" target="_blank">@straightface</a></div>
+            <div class="ch-name">Сделай лицо попроще</div>
+            <div class="ch-author">Валерия Парфенова</div>
+            <div class="ch-desc">Мода, музыка, медиа и мемы. Молодёжная аудитория.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-lifestyle">лайфстайл</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/coolmedium" target="_blank">@coolmedium</a></div>
+            <div class="ch-name">medium cool</div>
+            <div class="ch-author">Елизавета Буйнова, дизайнер</div>
+            <div class="ch-desc">Модное закулисье, технологии и производство одежды. Подходит для story о создании вещей.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-collab">коллаб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/photopupa" target="_blank">@photopupa</a></div>
+            <div class="ch-name">Я так вижу</div>
+            <div class="ch-author">Саша Mademuaselle, фотограф</div>
+            <div class="ch-desc">Визуальный контент, свежие имена в моде. Потенциал для фотосессий с продуктом.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-design">визуал</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/ThatsHaute" target="_blank">@ThatsHaute</a></div>
+            <div class="ch-name">That's Haute</div>
+            <div class="ch-author">Антон Гулевский, редактор моды The Symbol</div>
+            <div class="ch-desc">Критические заметки о моде и технологиях.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/fashionchain" target="_blank">@fashionchain</a></div>
+            <div class="ch-name">fashionchain</div>
+            <div class="ch-author">Елена Купряхина, креативный консультант</div>
+            <div class="ch-desc">Рецензии коллекций, аналитика и съёмки.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/timiliasov" target="_blank">@timiliasov</a></div>
+            <div class="ch-name">Тим Ильясов</div>
+            <div class="ch-author">Исследователь моды</div>
+            <div class="ch-desc">История и тренды моды. Глубокие разборы.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/wkola_zloslovia" target="_blank">@wkola_zloslovia</a></div>
+            <div class="ch-name">Злой редактор</div>
+            <div class="ch-author">Екатерина Бибекина-Милославская</div>
+            <div class="ch-desc">Эксклюзивный контент, показы и кампании.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/welawfashion" target="_blank">@welawfashion</a></div>
+            <div class="ch-name">Fashion Law</div>
+            <div class="ch-author">Максим Попов, юрист</div>
+            <div class="ch-desc">Судебные разбирательства в моде. Нишевая, но лояльная аудитория.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/kinocostume" target="_blank">@kinocostume</a></div>
+            <div class="ch-name">Кинокостюм для чайников</div>
+            <div class="ch-author">Анна Баштовая, художник по костюмам</div>
+            <div class="ch-desc">Стиль в фильмах, архивные фото. Пересечение моды и кинематографа.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-design">визуал</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/rakhliliya" target="_blank">@rakhliliya</a></div>
+            <div class="ch-name">Liliya Rakh</div>
+            <div class="ch-author">Лилия Рах, стилист, байер, телеведущая</div>
+            <div class="ch-desc">30+ лет в fashion-индустрии. Авторитетное мнение.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/pierdjo" target="_blank">@pierdjo</a></div>
+            <div class="ch-name">Пьер Джорджо</div>
+            <div class="ch-author">Илья Вершинин, модельный агент</div>
+            <div class="ch-desc">Индустрия изнутри. Кастинги и модельный бизнес.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/modelslife" target="_blank">@modelslife</a></div>
+            <div class="ch-name">Fabb Models' life</div>
+            <div class="ch-author">Саша Сергеева, модель</div>
+            <div class="ch-desc">Модельные будни, кастинги, съёмки. Потенциал для совместных съёмок.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-collab">коллаб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/shoesanddrinks" target="_blank">@shoesanddrinks</a></div>
+            <div class="ch-name">shoes&amp;drinks</div>
+            <div class="ch-author">Сергей Вельсин, ex-редактор Собаки</div>
+            <div class="ch-desc">Гид по кроссовкам и спортивной обуви. Сникер-культура.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-street">street</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 2. Streetwear ========== -->
+<div class="category" id="streetwear">
+    <div class="cat-header">
+        <div class="cat-icon" style="background:rgba(251,146,60,0.15);">&#9878;</div>
+        <h2>Streetwear и уличная мода</h2>
+        <span class="count">6 каналов</span>
+    </div>
+    <div class="priority-box">
+        <strong>Приоритет 1</strong> — прямое совпадение с позиционированием Ourobor. Нативный формат: история бренда + фото продукта + промокод.
+    </div>
+    <div class="channels-grid">
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/russtreetwear" target="_blank">@russtreetwear</a></div>
+            <div class="ch-name">RUSSIAN STREETWEAR</div>
+            <div class="ch-desc">Ежедневные обзоры streetwear-брендов, розыгрыши, новости. Реклама: @streetwearsupport</div>
+            <div class="ch-tags"><span class="tag tag-street">streetwear</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/street_men_style" target="_blank">@street_men_style</a></div>
+            <div class="ch-name">Street Men Style</div>
+            <div class="ch-desc">Уличный стиль и повседневные аутфиты для молодых мужчин.</div>
+            <div class="ch-tags"><span class="tag tag-street">streetwear</span><span class="tag tag-men">мужской</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/lookfinder" target="_blank">@lookfinder</a><span class="ch-subs">68K+</span></div>
+            <div class="ch-name">LOOKFINDER</div>
+            <div class="ch-desc">Самый крупный Telegram-канал о мужской моде. Лукбуки брендов, шопинг-гайды.</div>
+            <div class="ch-tags"><span class="tag tag-street">streetwear</span><span class="tag tag-men">мужской</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/FakFashion" target="_blank">@FakFashion</a><span class="ch-subs">61K+</span></div>
+            <div class="ch-name">Fak Fashion Fair</div>
+            <div class="ch-desc">Вдохновение модой и трендами. Крупная аудитория.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-street">streetwear</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/dressed_to" target="_blank">@dressed_to</a><span class="ch-subs">47K+</span></div>
+            <div class="ch-name">Dressed to Kill</div>
+            <div class="ch-desc">Модные тренды и бренды. Подборки образов.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-street">streetwear</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/lebonmot" target="_blank">@lebonmot</a></div>
+            <div class="ch-name">Bon Mot / OSD</div>
+            <div class="ch-author">Александр Рымкевич, ex-главред Robb Report</div>
+            <div class="ch-desc">Энциклопедия мужской моды. Архивные фото, секретные адреса магазинов.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span><span class="tag tag-fashion">мода</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 3. Мужской стиль ========== -->
+<div class="category" id="mens">
+    <div class="cat-header">
+        <div class="cat-icon" style="background:rgba(96,165,250,0.15);">&#9794;</div>
+        <h2>Мужской стиль и лайфстайл</h2>
+        <span class="count">8 каналов</span>
+    </div>
+    <div class="channels-grid">
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/mslook" target="_blank">@mslook</a></div>
+            <div class="ch-name">Men's Style</div>
+            <div class="ch-desc">Мужской стиль и подборки. Классика и casual.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/man_looks" target="_blank">@man_looks</a></div>
+            <div class="ch-name">Man Looks</div>
+            <div class="ch-desc">Мужская одежда и гаджеты. Лайфстайл-контент.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span><span class="tag tag-lifestyle">лайфстайл</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/Clotheshunter" target="_blank">@Clotheshunter</a></div>
+            <div class="ch-name">Clothes Hunter</div>
+            <div class="ch-desc">Авторские подборки базовых вещей, луки дня, честные обзоры покупок. Российские и нишевые бренды.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span><span class="tag tag-collab">коллаб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/yepman_blog" target="_blank">@yepman_blog</a></div>
+            <div class="ch-name">YEPMAN</div>
+            <div class="ch-desc">Вневременные советы: многослойность, подбор цвета, этикет в одежде.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/my_mens_style" target="_blank">@my_mens_style</a></div>
+            <div class="ch-name">Мужской стиль</div>
+            <div class="ch-desc">Помощь парням в создании собственного стиля.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/style_stile" target="_blank">@style_stile</a></div>
+            <div class="ch-name">Мужской стиль | Мода</div>
+            <div class="ch-desc">Советы по грамотному выбору мужской одежды.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/theosdnew" target="_blank">@theosdnew</a></div>
+            <div class="ch-name">OSD</div>
+            <div class="ch-author">Михаил Барышников</div>
+            <div class="ch-desc">Уникальный автор с чётким мнением и точными высказываниями о моде.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/PRICEFINDER_MEN" target="_blank">@PRICEFINDER_MEN</a></div>
+            <div class="ch-name">PRICEFINDER MEN</div>
+            <div class="ch-desc">Мониторинг скидок на мужскую одежду. Экономия денег и времени.</div>
+            <div class="ch-tags"><span class="tag tag-men">мужской</span><span class="tag tag-shop">шоппинг</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 4. Масс-мода и шоппинг ========== -->
+<div class="category" id="mass-fashion">
+    <div class="cat-header">
+        <div class="cat-icon" style="background:rgba(248,113,113,0.15);">&#9733;</div>
+        <h2>Масс-мода и шоппинг-каналы</h2>
+        <span class="count">10 каналов</span>
+    </div>
+    <div class="priority-box">
+        <strong>Приоритет 3</strong> — массовый охват, но аудитория ориентирована на масс-маркет. Подходит для акций, распродаж, повышения узнаваемости.
+    </div>
+    <div class="channels-grid">
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/AliExpressvStyle" target="_blank">@AliExpressvStyle</a><span class="ch-subs">100K+</span></div>
+            <div class="ch-name">Мода и Стиль | WB &bull; AliExpress</div>
+            <div class="ch-desc">Подборки стильных нарядов с маркетплейсов. Огромная аудитория.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span><span class="tag tag-women">женский</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/ALIwithRON" target="_blank">@ALIwithRON</a><span class="ch-subs">104K+</span></div>
+            <div class="ch-name">VIKTORIA RON</div>
+            <div class="ch-desc">Обзоры покупок с параметрами и замерами. Лояльная аудитория.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span><span class="tag tag-women">женский</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/hellodress" target="_blank">@hellodress</a></div>
+            <div class="ch-name">Я нашла!</div>
+            <div class="ch-desc">Канал-гардеробная с женской одеждой. Доступные и стильные находки.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span><span class="tag tag-women">женский</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/ali_marisssy" target="_blank">@ali_marisssy</a></div>
+            <div class="ch-name">Находки от Marisssy</div>
+            <div class="ch-desc">Товары для девушек с WB и маркетплейсов. Сборка в цельные стильные луки.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span><span class="tag tag-women">женский</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/vrednayamoda" target="_blank">@vrednayamoda</a></div>
+            <div class="ch-name">Vrednayamoda</div>
+            <div class="ch-desc">О трендах — смешивает Chanel с AliExpress. Доступная мода.</div>
+            <div class="ch-tags"><span class="tag tag-fashion">мода</span><span class="tag tag-shop">шоппинг</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/net5style" target="_blank">@net5style</a></div>
+            <div class="ch-name">НечегоНадеть</div>
+            <div class="ch-desc">Как одеваться стильно без больших трат. Обзоры масс-маркета.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span><span class="tag tag-women">женский</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/mens_wb" target="_blank">@mens_wb</a></div>
+            <div class="ch-name">Mens WB</div>
+            <div class="ch-desc">Мужская классика и casual с Wildberries.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span><span class="tag tag-men">мужской</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/k_style_bags" target="_blank">@k_style_bags</a></div>
+            <div class="ch-name">K Style Bags</div>
+            <div class="ch-desc">Сумки и рюкзаки разных брендов. Аудитория, интересующаяся аксессуарами.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/shoehunt_wb" target="_blank">@shoehunt_wb</a></div>
+            <div class="ch-name">Shoe Hunt WB</div>
+            <div class="ch-desc">Подборки обуви с Wildberries — новинки и классика.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/alie_ba_ba" target="_blank">@alie_ba_ba</a></div>
+            <div class="ch-name">Alie Ba Ba</div>
+            <div class="ch-desc">Все находки с AliExpress, WB и Ozon. Широкий охват.</div>
+            <div class="ch-tags"><span class="tag tag-shop">шоппинг</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 5. Осознанное потребление ========== -->
+<div class="category" id="conscious">
+    <div class="cat-header">
+        <div class="cat-icon" style="background:rgba(52,211,153,0.15);">&#9752;</div>
+        <h2>Осознанное потребление и минимализм</h2>
+        <span class="count">6 каналов</span>
+    </div>
+    <div class="priority-box">
+        <strong>Приоритет 1</strong> — философия Ourobor (баланс, качество, осознанность) идеально резонирует с этой аудиторией. Высокая конверсия.
+    </div>
+    <div class="channels-grid">
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/minimalismblog" target="_blank">@minimalismblog</a></div>
+            <div class="ch-name">Минимализм</div>
+            <div class="ch-desc">Авторский канал о минимализме, осознанности и саморазвитии.</div>
+            <div class="ch-tags"><span class="tag tag-eco">минимализм</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/nichego_lishnegoo" target="_blank">@nichego_lishnegoo</a></div>
+            <div class="ch-name">Ничего Лишнего</div>
+            <div class="ch-desc">Осознанное потребление, минимализм, Zero Waste и планирование.</div>
+            <div class="ch-tags"><span class="tag tag-eco">минимализм</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/minimalistic" target="_blank">@minimalistic</a></div>
+            <div class="ch-name">MINIMALISTIC</div>
+            <div class="ch-desc">Тёплые иллюстрации и минималистичная эстетика. Визуальный контент.</div>
+            <div class="ch-tags"><span class="tag tag-eco">минимализм</span><span class="tag tag-design">визуал</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/imorganicblog" target="_blank">@imorganicblog</a></div>
+            <div class="ch-name">imorganicblog</div>
+            <div class="ch-author">Настя Приказчикова, журналист</div>
+            <div class="ch-desc">Комфортный минимализм, экопривычки. Разоблачает гринвошинг.</div>
+            <div class="ch-tags"><span class="tag tag-eco">минимализм</span><span class="tag tag-lifestyle">лайфстайл</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/recyclemag" target="_blank">@recyclemag</a></div>
+            <div class="ch-name">Recycle</div>
+            <div class="ch-desc">Онлайн-журнал: практические советы по умеренному потреблению и экология.</div>
+            <div class="ch-tags"><span class="tag tag-eco">минимализм</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/sortirovochnaya" target="_blank">@sortirovochnaya</a></div>
+            <div class="ch-name">Сортировочная</div>
+            <div class="ch-desc">Практичный подход к экологии и осознанному потреблению. Доступный язык.</div>
+            <div class="ch-tags"><span class="tag tag-eco">минимализм</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 6. Санкт-Петербург ========== -->
+<div class="category" id="spb">
+    <div class="cat-header">
+        <div class="cat-icon" style="background:rgba(52,211,153,0.15);">&#9962;</div>
+        <h2>Санкт-Петербург — геотаргет</h2>
+        <span class="count">8 каналов</span>
+    </div>
+    <div class="priority-box">
+        <strong>Приоритет 2</strong> — идеально для анонсов pop-up, маркетов, шоурум-дней. Петербургская идентичность = часть ДНК бренда Ourobor.
+    </div>
+    <div class="channels-grid">
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/gopeterburg" target="_blank">@gopeterburg</a></div>
+            <div class="ch-name">Куда пойти в Питере</div>
+            <div class="ch-desc">Крупнейший канал — события, мероприятия, необычные локации, лучшие места СПб.</div>
+            <div class="ch-tags"><span class="tag tag-spb">СПб</span><span class="tag tag-lifestyle">лайфстайл</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/spbafisha" target="_blank">@spbafisha</a></div>
+            <div class="ch-name">Афиша Санкт-Петербург</div>
+            <div class="ch-desc">Подборка лучших новостей и событий в Петербурге.</div>
+            <div class="ch-tags"><span class="tag tag-spb">СПб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/kudagospb" target="_blank">@kudagospb</a></div>
+            <div class="ch-name">KudaGo Петербург</div>
+            <div class="ch-desc">Выставки, спектакли, концерты, рестораны, необычные места.</div>
+            <div class="ch-tags"><span class="tag tag-spb">СПб</span><span class="tag tag-lifestyle">лайфстайл</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/spbfree24" target="_blank">@spbfree24</a></div>
+            <div class="ch-name">Бесплатный Питер</div>
+            <div class="ch-desc">Бесплатные мероприятия, события и красивые места Петербурга и Ленобласти.</div>
+            <div class="ch-tags"><span class="tag tag-spb">СПб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/Sankt_Peterburg24" target="_blank">@Sankt_Peterburg24</a></div>
+            <div class="ch-name">Интересные события в СПб</div>
+            <div class="ch-desc">Лайфстайл-аудитория города. Городские события и подборки.</div>
+            <div class="ch-tags"><span class="tag tag-spb">СПб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/imPiter" target="_blank">@imPiter</a><span class="ch-subs">4.4K+</span></div>
+            <div class="ch-name">Афиша Питер</div>
+            <div class="ch-desc">Куда пойти и чем заняться в Петербурге. Городские события.</div>
+            <div class="ch-tags"><span class="tag tag-spb">СПб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/afishapeterburga" target="_blank">@afishapeterburga</a></div>
+            <div class="ch-name">Афиша бесплатных событий Петербурга</div>
+            <div class="ch-desc">Бесплатные мероприятия — идеально для анонсов открытых шоурум-дней.</div>
+            <div class="ch-tags"><span class="tag tag-spb">СПб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/v_poiskax_chuda" target="_blank">@v_poiskax_chuda</a></div>
+            <div class="ch-name">Кофе и билеты (в Петербурге)</div>
+            <div class="ch-desc">Путешествия и Петербург, городские истории. Лайфстайл-аудитория.</div>
+            <div class="ch-tags"><span class="tag tag-spb">СПб</span><span class="tag tag-lifestyle">лайфстайл</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 7. Дизайн и эстетика ========== -->
+<div class="category" id="design">
+    <div class="cat-header">
+        <div class="cat-icon" style="background:rgba(96,165,250,0.15);">&#9670;</div>
+        <h2>Дизайн, эстетика и визуальная культура</h2>
+        <span class="count">3 канала</span>
+    </div>
+    <div class="priority-box">
+        <strong>Приоритет 3</strong> — совпадение по эстетике и ценностям. Аудитория ценит визуал и минималистичный дизайн — подходит для имиджевых размещений.
+    </div>
+    <div class="channels-grid">
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/formalista" target="_blank">@formalista</a></div>
+            <div class="ch-name">Formalista</div>
+            <div class="ch-desc">Пейзажи, моменты жизни, абстракции. Визуальная эстетика.</div>
+            <div class="ch-tags"><span class="tag tag-design">визуал</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/loaboratory" target="_blank">@loaboratory</a></div>
+            <div class="ch-name">Losko</div>
+            <div class="ch-desc">Онлайн-журнал о жизни и творчестве архитекторов, дизайнеров и фотографов. Акцент на минимализм.</div>
+            <div class="ch-tags"><span class="tag tag-design">визуал</span><span class="tag tag-eco">минимализм</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><a class="ch-handle" href="https://t.me/gentlebloggingskris" target="_blank">@gentlebloggingskris</a></div>
+            <div class="ch-name">Gentle Blogging</div>
+            <div class="ch-desc">Канал из Санкт-Петербурга: natural beauty, self-love, food. Пересечение с ЦА.</div>
+            <div class="ch-tags"><span class="tag tag-lifestyle">лайфстайл</span><span class="tag tag-spb">СПб</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 8. Коллаборации ========== -->
+<div class="category" id="collabs">
+    <div class="cat-header">
+        <div class="cat-icon" style="background:rgba(251,191,36,0.15);">&#9734;</div>
+        <h2>Бренды и площадки для коллабораций</h2>
+        <span class="count">5 каналов / площадок</span>
+    </div>
+    <div class="priority-box">
+        <strong>Приоритет 2</strong> — не рекламные каналы, а партнёры. Совместные дропы, размещение в мультибрендах, кросс-промо.
+    </div>
+    <div class="channels-grid">
+        <div class="ch">
+            <div class="ch-top"><span class="ch-handle">NNEDRE (Нелли Недре)</span></div>
+            <div class="ch-name">Петербургский бренд</div>
+            <div class="ch-desc">Основательница рассказывает о производстве и продвижении бренда одежды. Совместный дроп или стайлинг «бренд + бренд» из СПб.</div>
+            <div class="ch-tags"><span class="tag tag-collab">коллаб</span><span class="tag tag-spb">СПб</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><span class="ch-handle">Люди и одежда</span></div>
+            <div class="ch-author">Света Падерина, журналист, Light on Mars</div>
+            <div class="ch-desc">Профессиональные разборы локальных марок с точки зрения дизайна. Обзор Ourobor = мощный social proof.</div>
+            <div class="ch-tags"><span class="tag tag-collab">коллаб</span><span class="tag tag-fashion">мода</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><span class="ch-handle">Fashion that</span></div>
+            <div class="ch-author">Линор Горалик, fashion-журналист</div>
+            <div class="ch-desc">Один из самых уважаемых fashion-журналистов РФ. Глубокая база знаний. Упоминание = авторитет.</div>
+            <div class="ch-tags"><span class="tag tag-collab">коллаб</span><span class="tag tag-media">медиа</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><span class="ch-handle">8Store / Subbota / LCLS</span></div>
+            <div class="ch-name">Мультибренды и локал-шопы</div>
+            <div class="ch-desc">Физические и онлайн-площадки с уникальной селекцией локальных брендов. Размещение Ourobor в мультибрендовом пространстве. <a href="https://lcls.ru/" target="_blank">lcls.ru</a></div>
+            <div class="ch-tags"><span class="tag tag-collab">коллаб</span><span class="tag tag-shop">шоп</span></div>
+        </div>
+        <div class="ch">
+            <div class="ch-top"><span class="ch-handle">Микро-блогеры 1K–15K</span></div>
+            <div class="ch-name">10–15 инфлюенсеров из СПб</div>
+            <div class="ch-desc">Фокус: минимализм, streetwear, осознанное потребление, СПб-лайфстайл. Бартер: вещь за обзор. Искать через TGStat и Telega.io.</div>
+            <div class="ch-tags"><span class="tag tag-collab">коллаб</span><span class="tag tag-spb">СПб</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== Инструменты ========== -->
+<div class="tools" id="tools">
+    <h3>Инструменты для самостоятельного поиска каналов</h3>
+    <div class="tools-grid">
+        <div class="tool-card">
+            <h4><a href="https://tgstat.ru/en/tag/style" target="_blank">TGStat</a></h4>
+            <p>Каталог по тегам «Стиль», «Мода», «СПб». Фильтры по подписчикам, охвату, CPM, ER.</p>
+        </div>
+        <div class="tool-card">
+            <h4><a href="https://telega.io/catalog/fashion" target="_blank">Telega.io</a></h4>
+            <p>Биржа рекламы в Telegram. Каталог Fashion с ценами и статистикой. Прямой заказ размещений.</p>
+        </div>
+        <div class="tool-card">
+            <h4><a href="https://telegrator.ru/channels/moda/" target="_blank">Telegrator</a></h4>
+            <p>Рейтинги и подборки каналов про моду, стиль, одежду. Сортировка по популярности.</p>
+        </div>
+        <div class="tool-card">
+            <h4><a href="https://tgstat.ru/en/tag/spb" target="_blank">TGStat — СПб</a></h4>
+            <p>Все каналы по тегу «Санкт-Петербург». Фильтр по тематике для точного геотаргетинга.</p>
+        </div>
+        <div class="tool-card">
+            <h4><a href="https://tlgrm.ru/channels/beauty" target="_blank">Tlgrm.ru</a></h4>
+            <p>Каталог каналов «Мода и красота». Статистика постов и подписчиков.</p>
+        </div>
+        <div class="tool-card">
+            <h4><a href="https://tgstat.ru/en/beauty" target="_blank">TGStat — Beauty</a></h4>
+            <p>Каталог «Fashion and Beauty» — все каналы категории с детальной аналитикой.</p>
+        </div>
+    </div>
+</div>
+
+</div><!-- /container -->
+
+<footer>
+    OUROBOR — Telegram Channels Database &bull; 2026
+</footer>
+
+</body>
+</html>
